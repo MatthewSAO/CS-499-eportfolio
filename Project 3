@@ -1,0 +1,117 @@
+//Matthew Ohlemacher
+// 2/24/2024
+
+#include <iostream>
+#include <fstream>
+#include <map>
+#include <string>
+#include <cctype> // For transforming characters to lowercase
+#include <algorithm> // For transforming function
+
+using namespace std;
+
+class ItemTracker {
+private:
+    map<string, int> itemFrequency; // store item frequencies
+
+public:
+    // read input file and populate itemFrequency map
+    void readInputFile(const string& filename) {
+        ifstream file(filename);
+        string item;
+        while (file >> item) {
+            // Convert item to lowercase
+            transform(item.begin(), item.end(), item.begin(), ::tolower);
+            itemFrequency[item]++;
+        }
+        file.close();
+    }
+
+    //search for an item and return its frequency
+    int searchItem(const string& item) {
+        string lowercaseItem = item;
+        // Convert input item to lowercase
+        transform(lowercaseItem.begin(), lowercaseItem.end(), lowercaseItem.begin(), ::tolower);
+        return itemFrequency[lowercaseItem];
+    }
+
+    // print frequency list
+    void printFrequencyList() {
+        cout << "------------------------------------" << endl;
+        for (const auto& pair : itemFrequency) {
+            cout << pair.first << " " << pair.second << endl;
+        }
+        cout << "------------------------------------" << endl;
+    }
+
+    // print histogram
+    void printHistogram() {
+        cout << "------------------------------------" << endl;
+        for (const auto& pair : itemFrequency) {
+            cout << pair.first << " ";
+            for (int i = 0; i < pair.second; ++i) {
+                cout << "*";
+            }
+            cout << endl;
+        }
+        cout << "------------------------------------" << endl;
+    }
+
+    // backup data to a file
+    void backupData(const string& filename) {
+        ofstream file(filename);
+        for (const auto& pair : itemFrequency) {
+            file << pair.first << " " << pair.second << endl;
+        }
+        file.close();
+    }
+};
+
+int main() {
+    ItemTracker tracker;
+    tracker.readInputFile("CS210_Project_Three_Input_File.txt");
+
+    int choice;
+    string searchItem;
+    do {
+        // Display menu options
+        cout << "Menu:\n";
+        cout << "1. Search for an item\n";
+        cout << "2. Print frequency list\n";
+        cout << "3. Print histogram\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch(choice) {
+            case 1:
+                // Search for an item
+                cout << "Enter item to search for: ";
+                cin >> searchItem;
+                cout << "Frequency of " << searchItem << ": " << tracker.searchItem(searchItem) << endl;
+                break;
+            case 2:
+                // Print frequency list
+                cout << "Frequency list:\n";
+                tracker.printFrequencyList();
+                break;
+            case 3:
+                // Print histogram
+                cout << "Histogram:\n";
+                tracker.printHistogram();
+                break;
+            case 4:
+                // Exit the program
+                cout << "Exiting.\n";
+                break;
+            default:
+                // Invalid choice
+                cout << "Invalid choice. Enter a number between 1 and 4.\n";
+        }
+    } while (choice != 4);
+
+    // Backup data before exiting
+    tracker.backupData("frequency.dat");
+
+    return 0;
+}
