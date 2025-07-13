@@ -1,0 +1,146 @@
+// Matthew Ohlemacher
+// Cs 300 
+// 8/16/2024
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <unordered_map>
+#include <algorithm>
+
+using namespace std;
+
+// Course class to store course information
+class Course {
+public:
+    string courseNumber;
+    string courseName;
+    vector<string> preReqs;
+
+    Course(string number, string name) : courseNumber(number), courseName(name) {}
+};
+
+// Function to load courses from a file into the hash table
+void LoadCourses(const string& filename, unordered_map<string, Course>& courses) {
+    ifstream file(filename);
+    if (!file.is_open()) {
+        cout << "Unable to open file." << endl;
+        return;
+    }
+
+    string line;
+    while (getline(file, line)) {
+        stringstream ss(line);
+        string courseNumber, courseName, preReq;
+        vector<string> preReqs;
+
+        getline(ss, courseNumber, ',');
+        getline(ss, courseName, ',');
+
+        while (getline(ss, preReq, ',')) {
+            preReqs.push_back(preReq);
+        }
+
+        Course course(courseNumber, courseName);
+        course.preReqs = preReqs;
+        courses.insert({ courseNumber, course });
+    }
+
+    file.close();
+    cout << "Courses loaded successfully." << endl;
+}
+
+// Function to print a list of courses in alphanumeric order
+void PrintCourseList(const unordered_map<string, Course>& courses) {
+    vector<string> courseNumbers;
+
+    for (const auto& pair : courses) {
+        courseNumbers.push_back(pair.first);
+    }
+
+    sort(courseNumbers.begin(), courseNumbers.end());
+
+    for (const auto& courseNumber : courseNumbers) {
+        cout << courseNumber << ": " << courses.at(courseNumber).courseName << endl;
+    }
+}
+
+// Function to print course information and prerequisites
+void PrintCourseInfo(const unordered_map<string, Course>& courses, const string& courseNumber) {
+    auto it = courses.find(courseNumber);
+    if (it != courses.end()) {
+        const Course& course = it->second;
+        cout << "Course Number: " << course.courseNumber << endl;
+        cout << "Title: " << course.courseName << endl;
+
+        if (!course.preReqs.empty()) {
+            cout << "Prerequisites:" << endl;
+            for (const auto& prereq : course.preReqs) {
+                auto prereq_it = courses.find(prereq);
+                if (prereq_it != courses.end()) {
+                    cout << "  - " << prereq << ": " << prereq_it->second.courseName << endl;
+                }
+                else {
+                    cout << "  - " << prereq << ": Course not found" << endl;
+                }
+            }
+        }
+        else {
+            cout << "No prerequisites." << endl;
+        }
+    }
+    else {
+        cout << "Course " << courseNumber << " not found." << endl;
+    }
+}
+
+// Function to display the menu and handle user input
+void DisplayMenu(unordered_map<string, Course>& courses) {
+    int choice;
+    string filename;
+    string courseNumber;
+
+    do {
+        cout << "1: Load Data from File" << endl;
+        cout << "2: Print All Courses in Alphanumeric Order" << endl;
+        cout << "3: Print Course Title and Prerequisites" << endl;
+        cout << "9: Exit Program" << endl;
+        cout << "Enter your choice: ";
+        cin >> choice;
+        // Check if the input is valid
+        if (cin.fail()) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Invalid choice. Please try again." << endl;
+            continue;
+        }
+
+        switch (choice) {
+            case 1:
+                cout << "Enter filename: ";
+                cin >> filename;
+                LoadCourses(filename, courses);
+                break;
+            case 2:
+                PrintCourseList(courses);
+                break;
+            case 3:
+                cout << "Enter course number: ";
+                cin >> courseNumber;
+                PrintCourseInfo(courses, courseNumber);
+                break;
+            case 9:
+                cout << "Exiting program." << endl;
+                break;
+            default:
+                cout << "Invalid choice. Please try again." << endl;
+        }
+    } while (choice != 9);
+}
+
+// Main function
+int main() {
+    unordered_map<string, Course> courses;
+    DisplayMenu(courses);
+    return 0;
+}
